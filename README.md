@@ -2,10 +2,11 @@
 
 CODE RELATED TO SIH PROJECT
 
-Problem Statement Title - Queuing models in OPDs/ availability of beds/ admission of patients. A hospital based solution is ideal which can be integrated with city wide module
+Problem Statement Title - Virtual Voice Assistant Sara for the Handicap and
+Blind People to Make Them Use of Desktop
 
-PROJECT DISCRIPTION - Technological solution as per queuing models in OPDs/availability of beds/admission of patients would be one area. Study of dispensation of various types of medicines/consumables and Inventory management modules at hospital level are key areas requiring support. NIC has already developed some modules but their implementation in Delhi is yet to be started. A hospital based solution is ideal which can be integrated with city wide module may be required.
+PROJECT DISCRIPTION -a voice-controlled virtual assistant designed to help handicapped and blind individuals use desktop computers. It enables users to perform tasks like browsing, managing files, and using applications through voice commands, making technology more accessible and inclusive for those with disabilities.
 
-Organization - Government of NCT of Delhi
+Organization - Ministry of Education's Innovation Cell (MIC)	
 
-Theme - MedTech / BioTech / HealthTech
+Theme - SMART AUTOMATION
