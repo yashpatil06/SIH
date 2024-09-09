@@ -13,7 +13,8 @@ import os
 import urllib.parse
 from mtranslate import translate  # Import translation library
 from colorama import Fore, Style, init
-import threading
+import requests
+import time
 
 init(autoreset=True)
 
@@ -30,8 +31,6 @@ def say(text, voice="Microsoft Zira Desktop - English (United States)"):
         print(f"Voice '{voice}' not found. Using the default voice.")
     speaker.Speak(text)
 
-
-# Example usage:
 say("Sara HERE !!")
 
 
@@ -51,13 +50,11 @@ def takeCommand():
     return query
 
 
-# Function to translate Hindi to English
 def Translate_hindi_to_english(text):
     english_text = translate(text, "en-us")
     return english_text
 
 
-# Function to search on Google
 def search_on_google(query):
     try:
         encoded_query = urllib.parse.quote(query)  # Encode query for URL
@@ -79,11 +76,9 @@ def list_running_processes():
             pass
 
 
-# Run this to list processes
 list_running_processes()
 
 
-# Function for speech-to-text translation
 def Speech_To_Text_Python():
     recognizer = sr.Recognizer()
     recognizer.dynamic_energy_threshold = False
@@ -115,29 +110,26 @@ def Speech_To_Text_Python():
             print("\r", end="", flush=True)
 
 
-# Function to close applications
 def close_application(app_name):
     try:
         app_name = app_name.lower()
         found = False
         process_closed = False
 
-        # Iterate over running processes
         for proc in psutil.process_iter(['pid', 'name']):
             process_name = proc.info['name'].lower()
 
             if ("word" in app_name and "winword" in process_name) or \
                     (("vs code" in app_name or "visual studio code" in app_name) and "code" in process_name) or \
-                    ("powerpoint" in app_name and "powerpnt" in process_name) or \
+                    ("power point" in app_name and "PowerPoint" in process_name) or \
                     ("command prompt" in app_name or "cmd" in app_name and "cmd" in process_name) or \
                     ("brave" in app_name and "brave" in process_name) or \
                     ("chrome" in app_name and "chrome" in process_name):
-                proc.terminate()  # Terminate the process
+                proc.terminate()
                 say(f"Closing {process_name}")
                 process_closed = True
                 found = True
 
-                # Wait for the process to terminate
                 proc.wait(timeout=5)  # Wait for up to 5 seconds for termination
 
         if not found:
@@ -151,9 +143,20 @@ def close_application(app_name):
         say(f"Error occurred while closing the application: {e}")
 
 
+def retry_request(url, retries=3, backoff_factor=0.5):
+    for i in range(retries):
+        try:
+            response = requests.get(url, timeout=10)
+            return response
+        except requests.exceptions.ConnectTimeout:
+            print(f"Attempt {i+1} failed. Retrying in {backoff_factor * (2 ** i)} seconds.")
+            time.sleep(backoff_factor * (2 ** i))
+    return None
+
+
 # Main loop for assistant commands
 while True:
-    text = Speech_To_Text_Python()  # Now uses speech-to-text translation
+    text = Speech_To_Text_Python()
     if text:
         if text.lower() == "stop":
             say("Stopping the program.")
@@ -161,16 +164,14 @@ while True:
 
         say(text)
 
-        # Feature to open Google and search
         if "open google" in text.lower():
             say("What would you like to search on Google?")
-            search_query = Speech_To_Text_Python()  # Using translated speech-to-text
+            search_query = Speech_To_Text_Python()
             if search_query:
                 search_on_google(search_query)
             else:
                 say("Sorry, I didn't catch that. Please try again.")
 
-        # Feature to open specific websites
         sites = [
             ["YouTube", "https://youtube.com"],
             ["Browser", "https://google.com"],
@@ -185,19 +186,16 @@ while True:
                 say(f"Opening {site[0]} sir..", voice="Microsoft Zira Desktop - English (United States)")
                 webbrowser.open(site[1])
 
-        # Feature to play music
         if "play music" in text.lower():
             music_dir = r"C:\Users\harsh\OneDrive\Documents\music"
             songs = os.listdir(music_dir)
             os.startfile(os.path.join(music_dir, songs[0]))
 
-        # Feature for time
         if "the time" in text.lower():
             hour = datetime.datetime.now().strftime("%H")
             min = datetime.datetime.now().strftime("%M")
             say(f"Time is {hour} hours and {min} minutes")
 
-        # Feature for playing YouTube videos
         if "play youtube" in text.lower():
             say("What would you like to search on YouTube?", voice="Microsoft Zira Desktop - English (United States)")
             search_query = Speech_To_Text_Python()
@@ -209,12 +207,16 @@ while True:
         if "information" in text.lower():
             say("Searching sir")
             text = text.replace("wikipedia", "")
-            results = wikipedia.summary(text, sentences=3)
-            say("According to Wikipedia")
-            print(results)
-            say(results)
+            try:
+                results = wikipedia.summary(text, sentences=3)
+                say("According to Wikipedia")
+                print(results)
+                say(results)
+            except wikipedia.exceptions.DisambiguationError as e:
+                say(f"Disambiguation error: {e}")
+            except wikipedia.exceptions.PageError as e:
+                say(f"Page error: {e}")
 
-        # Feature to take a note
         if "note" in text.lower():
             say("What should I note down?")
             note = Speech_To_Text_Python().lower()
@@ -222,7 +224,6 @@ while True:
                 f.write(note + "\n")
             say("Note added successfully.")
 
-        # Feature to launch applications
         if "launch" in text.lower():
             if "word" in text.lower():
                 say("Launching Microsoft Word", voice="Microsoft Zira Desktop - English (United States)")
@@ -239,17 +240,20 @@ while True:
 
             elif "command prompt" in text.lower() or "cmd" in text.lower():
                 say("Launching Command Prompt", voice="Microsoft Zira Desktop - English (United States)")
-                os.system("start cmd")
+                os.startfile(r"C:\Windows\System32\cmd.exe")
 
             elif "brave" in text.lower():
                 say("Launching Brave Browser", voice="Microsoft Zira Desktop - English (United States)")
-                os.startfile(r"C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Brave.lnk")
+                os.startfile(r"C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe")
 
             elif "chrome" in text.lower():
                 say("Launching Google Chrome", voice="Microsoft Zira Desktop - English (United States)")
-                os.startfile(r"C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Google Chrome.lnk")
+                os.startfile(r"C:\Program Files\Google\Chrome\Application\chrome.exe")
 
-        # Feature to close applications
         if "close" in text.lower():
-            close_application(text.lower())
-
+            say("Which application should I close?")
+            app_name = Speech_To_Text_Python().lower()
+            if app_name:
+                close_application(app_name)
+            else:
+                say("Sorry, I didn't catch that. Please try again.")
